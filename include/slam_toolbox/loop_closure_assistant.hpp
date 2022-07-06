@@ -45,7 +45,7 @@ class LoopClosureAssistant
 {
 public:
   LoopClosureAssistant(
-    rclcpp::Node::SharedPtr node, karto::Mapper * mapper,
+    rclcpp_lifecycle::LifecycleNode::SharedPtr node, karto::Mapper * mapper,
     laser_utils::ScanHolder * scan_holder, PausedState & state,
     ProcessType & processor_type);
 
@@ -53,6 +53,9 @@ public:
   void processInteractiveFeedback(
     const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr feedback);
   void publishGraph();
+
+  void activate();
+  void deactivate();
 
 private:
   bool manualLoopClosureCallback(
@@ -73,8 +76,8 @@ private:
 
   std::unique_ptr<tf2_ros::TransformBroadcaster> tfB_;
   laser_utils::ScanHolder * scan_holder_;
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_publisher_;
-  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr scan_publisher_;
+  rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_publisher_;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::LaserScan>::SharedPtr scan_publisher_;
   rclcpp::Service<slam_toolbox::srv::Clear>::SharedPtr ssClear_manual_;
   rclcpp::Service<slam_toolbox::srv::LoopClosure>::SharedPtr ssLoopClosure_;
   rclcpp::Service<slam_toolbox::srv::ToggleInteractive>::SharedPtr ssInteractive_;
@@ -85,7 +88,7 @@ private:
   std::unique_ptr<interactive_markers::InteractiveMarkerServer> interactive_server_;
   boost::mutex interactive_mutex_;
   bool interactive_mode_, enable_interactive_mode_;
-  rclcpp::Node::SharedPtr node_;
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
   std::string map_frame_;
   PausedState & state_;
   ProcessType & processor_type_;

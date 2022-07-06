@@ -23,7 +23,7 @@
 
 /*****************************************************************************/
 MergeMapsKinematic::MergeMapsKinematic()
-: Node("map_merging")
+: LifecycleNode("map_merging")
 /*****************************************************************************/
 {
   RCLCPP_INFO(get_logger(), "MergeMapsKinematic: Starting up!");
@@ -56,6 +56,36 @@ void MergeMapsKinematic::configure()
     "merge_maps_tool", shared_from_this());
 }
 
+/*****************************************************************************/
+void MergeMapsKinematic::activate()
+/*****************************************************************************/
+{
+  for (auto sub : sstS_)
+  {
+    sub->on_activate();
+  }
+
+  for (auto sub : sstmS_)
+  {
+    sub->on_activate();
+  }
+
+}
+
+/*****************************************************************************/
+void MergeMapsKinematic::deactivate()
+/*****************************************************************************/
+{
+  for (auto sub : sstS_)
+  {
+    sub->on_deactivate();
+  }
+
+  for (auto sub : sstmS_)
+  {
+    sub->on_deactivate();
+  }
+}
 /*****************************************************************************/
 MergeMapsKinematic::~MergeMapsKinematic()
 /*****************************************************************************/

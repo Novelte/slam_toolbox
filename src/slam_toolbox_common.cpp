@@ -35,7 +35,7 @@ SlamToolbox::SlamToolbox()
 
 /*****************************************************************************/
 SlamToolbox::SlamToolbox(rclcpp::NodeOptions options)
-: Node("slam_toolbox", "", options),
+: rclcpp_lifecycle::LifecycleNode("slam_toolbox", "", options),
   solver_loader_("slam_toolbox", "karto::ScanSolver"),
   processor_type_(PROCESS),
   first_measurement_(true),
@@ -46,13 +46,17 @@ SlamToolbox::SlamToolbox(rclcpp::NodeOptions options)
 {
   smapper_ = std::make_unique<mapper_utils::SMapper>();
   dataset_ = std::make_unique<Dataset>();
+
+  setParams();
 }
 
 /*****************************************************************************/
-void SlamToolbox::configure()
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+SlamToolbox::on_configure(const rclcpp_lifecycle::State &)
 /*****************************************************************************/
 {
-  setParams();
+  RCLCPP_INFO(get_logger(), "Configuring");
+
   setROSInterfaces();
   setSolver();
 
@@ -78,6 +82,80 @@ void SlamToolbox::configure()
       this, transform_publish_period)));
   threads_.push_back(std::make_unique<boost::thread>(
       boost::bind(&SlamToolbox::publishVisualizations, this)));
+
+  loadPoseGraphByParams();
+
+  RCLCPP_INFO(get_logger(), "Configured");
+  return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+}
+
+/*****************************************************************************/
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+SlamToolbox::on_activate(const rclcpp_lifecycle::State & )
+/*****************************************************************************/
+{
+  RCLCPP_INFO(get_logger(), "Activating");
+  sst_->on_activate();
+  sstm_->on_activate();
+  pose_pub_->on_activate();
+
+  closure_assistant_->activate();
+
+  return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+}
+
+/*****************************************************************************/
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+SlamToolbox::on_deactivate(const rclcpp_lifecycle::State & )
+/*****************************************************************************/
+{
+  RCLCPP_INFO(get_logger(), "Deactivating");
+  sst_->on_deactivate();
+  sstm_->on_deactivate();
+  pose_pub_->on_deactivate();
+
+  closure_assistant_->deactivate();
+  
+  return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+}
+
+/*****************************************************************************/
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+SlamToolbox::on_cleanup(const rclcpp_lifecycle::State & )
+/*****************************************************************************/
+{
+  RCLCPP_INFO(get_logger(), "Cleaning up");
+  tf_.reset();
+  tfL_.reset();
+  tfB_.reset();
+  scan_filter_sub_.reset();
+  scan_filter_.reset();
+  sst_.reset();
+  sstm_.reset();
+  pose_pub_.reset();
+  ssMap_.reset();
+  ssPauseMeasurements_.reset();
+  ssSerialize_.reset();
+  ssDesserialize_.reset();
+
+  for (int i = 0; i > threads_.size(); i++)
+  {
+    threads_[i].reset();
+  }
+
+  process_near_pose_.reset();
+  solver_.reset();
+  
+  return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+}
+
+/*****************************************************************************/
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+SlamToolbox::on_shutdown(const rclcpp_lifecycle::State & )
+/*****************************************************************************/
+{
+  RCLCPP_INFO(get_logger(), "Shutting down");
+  return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
 /*****************************************************************************/
@@ -213,12 +291,13 @@ void SlamToolbox::setROSInterfaces()
     std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
   scan_filter_sub_ =
-    std::make_unique<message_filters::Subscriber<sensor_msgs::msg::LaserScan>>(
-    shared_from_this().get(), scan_topic_, rmw_qos_profile_sensor_data);
+    std::make_unique<message_filters::Subscriber<sensor_msgs::msg::LaserScan, 
+    rclcpp_lifecycle::LifecycleNode>>(
+    shared_from_this(), scan_topic_, rmw_qos_profile_sensor_data);
   scan_filter_ =
     std::make_unique<tf2_ros::MessageFilter<sensor_msgs::msg::LaserScan>>(
-    *scan_filter_sub_, *tf_, odom_frame_, 1, shared_from_this(),
-    tf2::durationFromSec(transform_timeout_.seconds()));
+    *scan_filter_sub_, *tf_, odom_frame_, 1, get_node_logging_interface(),
+    get_node_clock_interface());
   scan_filter_->registerCallback(
     std::bind(&SlamToolbox::laserCallback, this, std::placeholders::_1));
 }

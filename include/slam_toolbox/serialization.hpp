@@ -38,7 +38,7 @@ inline bool write(
   const std::string & filename,
   karto::Mapper & mapper,
   karto::Dataset & dataset,
-  rclcpp::Node::SharedPtr node)
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node)
 {
   try {
     mapper.SaveToFile(filename + std::string(".posegraph"));
@@ -55,7 +55,7 @@ inline bool read(
   const std::string & filename,
   karto::Mapper & mapper,
   karto::Dataset & dataset,
-  rclcpp::Node::SharedPtr node)
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node)
 {
   if (!fileExists(filename + std::string(".posegraph"))) {
     RCLCPP_ERROR(node->get_logger(),

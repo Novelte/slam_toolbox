@@ -31,6 +31,8 @@ find_package(rviz_ogre_vendor REQUIRED)
 find_package(rviz_rendering REQUIRED)
 find_package(interactive_markers REQUIRED)
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Test Concurrent)
+find_package(rclcpp_lifecycle REQUIRED)
+find_package(lifecycle_msgs REQUIRED)
 
 #karto_sdk lib
 set(BUILD_SHARED_LIBS ON)
@@ -57,6 +59,8 @@ set(dependencies
   rviz_ogre_vendor
   rviz_rendering
   interactive_markers
+  lifecycle_msgs
+  rclcpp_lifecycle
   Qt5
 )
 
