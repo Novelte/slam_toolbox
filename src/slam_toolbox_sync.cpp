@@ -52,6 +52,10 @@ SynchronousSlamToolbox::on_deactivate(const rclcpp_lifecycle::State & )
   state_.set(VISUALIZING_GRAPH, true);
   state_.set(PROCESSING, true);
   
+  solver_->Reset();
+  dataset_->Clear();
+  smapper_->Reset();
+
   RCLCPP_INFO(get_logger(), "SynchronousSlamToolbox: "
     "Clearing all queued scans to add to map.");
   while (!q_.empty()) {

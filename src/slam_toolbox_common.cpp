@@ -123,7 +123,11 @@ SlamToolbox::on_deactivate(const rclcpp_lifecycle::State & )
   state_.set(NEW_MEASUREMENTS, true);
   state_.set(VISUALIZING_GRAPH, true);
   state_.set(PROCESSING, true);
-  
+
+  solver_->Reset();
+  dataset_->Clear();
+  smapper_->Reset();
+
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
