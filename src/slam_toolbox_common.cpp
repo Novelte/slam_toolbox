@@ -101,6 +101,10 @@ SlamToolbox::on_activate(const rclcpp_lifecycle::State & )
 
   closure_assistant_->activate();
 
+  state_.set(NEW_MEASUREMENTS, false);
+  state_.set(VISUALIZING_GRAPH, false);
+  state_.set(PROCESSING, false);
+  
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
@@ -115,6 +119,10 @@ SlamToolbox::on_deactivate(const rclcpp_lifecycle::State & )
   pose_pub_->on_deactivate();
 
   closure_assistant_->deactivate();
+
+  state_.set(NEW_MEASUREMENTS, true);
+  state_.set(VISUALIZING_GRAPH, true);
+  state_.set(PROCESSING, true);
   
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
