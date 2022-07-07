@@ -37,6 +37,31 @@ SynchronousSlamToolbox::SynchronousSlamToolbox(rclcpp::NodeOptions options)
 }
 
 /*****************************************************************************/
+rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
+SynchronousSlamToolbox::on_deactivate(const rclcpp_lifecycle::State & )
+/*****************************************************************************/
+{
+  RCLCPP_INFO(get_logger(), "Deactivating");
+  sst_->on_deactivate();
+  sstm_->on_deactivate();
+  pose_pub_->on_deactivate();
+
+  closure_assistant_->deactivate();
+
+  state_.set(NEW_MEASUREMENTS, true);
+  state_.set(VISUALIZING_GRAPH, true);
+  state_.set(PROCESSING, true);
+  
+  RCLCPP_INFO(get_logger(), "SynchronousSlamToolbox: "
+    "Clearing all queued scans to add to map.");
+  while (!q_.empty()) {
+    q_.pop();
+  }
+
+  return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+}
+
+/*****************************************************************************/
 void SynchronousSlamToolbox::run()
 /*****************************************************************************/
 {
