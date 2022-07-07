@@ -26,12 +26,12 @@
 namespace slam_toolbox
 {
 
-/*****************************************************************************/
-SlamToolbox::SlamToolbox()
-: SlamToolbox(rclcpp::NodeOptions())
-/*****************************************************************************/
-{
-}
+// /*****************************************************************************/
+// SlamToolbox::SlamToolbox()
+// : SlamToolbox(rclcpp::NodeOptions())
+// /*****************************************************************************/
+// {
+// }
 
 /*****************************************************************************/
 SlamToolbox::SlamToolbox(rclcpp::NodeOptions options)
@@ -46,8 +46,6 @@ SlamToolbox::SlamToolbox(rclcpp::NodeOptions options)
 {
   smapper_ = std::make_unique<mapper_utils::SMapper>();
   dataset_ = std::make_unique<Dataset>();
-
-  setParams();
 }
 
 /*****************************************************************************/
@@ -56,7 +54,7 @@ SlamToolbox::on_configure(const rclcpp_lifecycle::State &)
 /*****************************************************************************/
 {
   RCLCPP_INFO(get_logger(), "Configuring");
-
+  setParams();
   setROSInterfaces();
   setSolver();
 
