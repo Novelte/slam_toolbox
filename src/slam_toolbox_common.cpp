@@ -112,6 +112,13 @@ SlamToolbox::on_deactivate(const rclcpp_lifecycle::State & )
 /*****************************************************************************/
 {
   RCLCPP_INFO(get_logger(), "Deactivating");
+  deactivateAndReset();
+
+  return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+}
+
+void SlamToolbox::deactivateAndReset()
+{
   sst_->on_deactivate();
   sstm_->on_deactivate();
   pose_pub_->on_deactivate();
@@ -122,12 +129,13 @@ SlamToolbox::on_deactivate(const rclcpp_lifecycle::State & )
   state_.set(VISUALIZING_GRAPH, true);
   state_.set(PROCESSING, true);
 
-  solver_->Reset();
+  // solver_->Reset();
   dataset_->Clear();
+  smapper_->clearLocalizationBuffer();
   smapper_->Reset();
-
-  return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+  
 }
+
 
 /*****************************************************************************/
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn

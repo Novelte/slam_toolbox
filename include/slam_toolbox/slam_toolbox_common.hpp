@@ -142,6 +142,9 @@ protected:
     const std::shared_ptr<slam_toolbox::srv::Pause::Request> req,
     std::shared_ptr<slam_toolbox::srv::Pause::Response> resp);
 
+  // reset
+  void deactivateAndReset();
+
   // ROS-y-ness
   std::unique_ptr<tf2_ros::Buffer> tf_;
   std::unique_ptr<tf2_ros::TransformListener> tfL_;
