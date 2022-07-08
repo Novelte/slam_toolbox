@@ -19,6 +19,7 @@
 #ifndef SLAM_TOOLBOX__SLAM_TOOLBOX_COMMON_HPP_
 #define SLAM_TOOLBOX__SLAM_TOOLBOX_COMMON_HPP_
 
+#include <atomic>
 #include <sys/resource.h>
 #include <boost/thread.hpp>
 #include <string>
@@ -90,6 +91,8 @@ protected:
   void setParams();
   void setSolver();
   void setROSInterfaces();
+  rclcpp::ParameterValue map_start_pose_;
+  rclcpp::ParameterValue map_start_at_dock_;
 
   // callbacks
   virtual void laserCallback(sensor_msgs::msg::LaserScan::ConstSharedPtr scan) = 0;
@@ -141,6 +144,10 @@ protected:
     const std::shared_ptr<rmw_request_id_t> request_header,
     const std::shared_ptr<slam_toolbox::srv::Pause::Request> req,
     std::shared_ptr<slam_toolbox::srv::Pause::Response> resp);
+
+  // activate
+  void activateAndRun();
+  std::atomic<bool> active_{false};
 
   // reset
   void deactivateAndReset();

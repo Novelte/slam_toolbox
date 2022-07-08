@@ -81,8 +81,6 @@ SlamToolbox::on_configure(const rclcpp_lifecycle::State &)
   threads_.push_back(std::make_unique<boost::thread>(
       boost::bind(&SlamToolbox::publishVisualizations, this)));
 
-  loadPoseGraphByParams();
-
   RCLCPP_INFO(get_logger(), "Configured");
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
@@ -93,17 +91,29 @@ SlamToolbox::on_activate(const rclcpp_lifecycle::State & )
 /*****************************************************************************/
 {
   RCLCPP_INFO(get_logger(), "Activating");
+  activateAndRun();
+  RCLCPP_INFO(get_logger(), "Activated");
+  return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+}
+
+void SlamToolbox::activateAndRun()
+{ 
+  map_to_odom_.setIdentity();
+  loadPoseGraphByParams();
+
+  // Publishers
   sst_->on_activate();
   sstm_->on_activate();
   pose_pub_->on_activate();
-
   closure_assistant_->activate();
 
+  // Set States
   state_.set(NEW_MEASUREMENTS, false);
   state_.set(VISUALIZING_GRAPH, false);
   state_.set(PROCESSING, false);
-  
-  return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
+
+  active_ = true;
+  first_measurement_ = true;
 }
 
 /*****************************************************************************/
@@ -113,27 +123,31 @@ SlamToolbox::on_deactivate(const rclcpp_lifecycle::State & )
 {
   RCLCPP_INFO(get_logger(), "Deactivating");
   deactivateAndReset();
-
+  RCLCPP_INFO(get_logger(), "Deactivated");
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
 void SlamToolbox::deactivateAndReset()
 {
+  // Publishers
   sst_->on_deactivate();
   sstm_->on_deactivate();
   pose_pub_->on_deactivate();
-
   closure_assistant_->deactivate();
 
+  // Set States
   state_.set(NEW_MEASUREMENTS, true);
   state_.set(VISUALIZING_GRAPH, true);
   state_.set(PROCESSING, true);
 
-  // solver_->Reset();
-  dataset_->Clear();
-  smapper_->clearLocalizationBuffer();
+  boost::mutex::scoped_lock lock(smapper_mutex_);
+
+  solver_->Reset();
   smapper_->Reset();
-  
+  dataset_->Clear();
+  lasers_.clear();
+
+  active_ = false;
 }
 
 
@@ -219,14 +233,13 @@ void SlamToolbox::setSolver()
 void SlamToolbox::setParams()
 /*****************************************************************************/
 {
-  map_to_odom_.setIdentity();
   odom_frame_ = std::string("odom");
   odom_frame_ = this->declare_parameter("odom_frame", odom_frame_);
 
   map_frame_ = std::string("map");
   map_frame_ = this->declare_parameter("map_frame", map_frame_);
 
-  base_frame_ = std::string("base_footprint");
+  base_frame_ = std::string("base_link");
   base_frame_ = this->declare_parameter("base_frame", base_frame_);
 
   resolution_ = 0.05;
@@ -267,6 +280,10 @@ void SlamToolbox::setParams()
   smapper_->configure(shared_from_this());
   this->declare_parameter("paused_new_measurements",rclcpp::ParameterType::PARAMETER_BOOL);
   this->set_parameter({"paused_new_measurements", false});
+
+  this->declare_parameter("map_file_name", std::string(""));
+  map_start_pose_ = this->declare_parameter("map_start_pose",rclcpp::ParameterType::PARAMETER_DOUBLE_ARRAY);
+  map_start_at_dock_ = this->declare_parameter("map_start_at_dock",rclcpp::ParameterType::PARAMETER_BOOL);
 }
 
 /*****************************************************************************/
@@ -410,14 +427,11 @@ bool SlamToolbox::shouldStartWithPoseGraph(
 /*****************************************************************************/
 {
   // if given a map to load at run time, do it.
-  this->declare_parameter("map_file_name", std::string(""));
-  auto map_start_pose = this->declare_parameter("map_start_pose",rclcpp::ParameterType::PARAMETER_DOUBLE_ARRAY);
-  auto map_start_at_dock = this->declare_parameter("map_start_at_dock",rclcpp::ParameterType::PARAMETER_BOOL);
   filename = this->get_parameter("map_file_name").as_string();
   if (!filename.empty()) {
     std::vector<double> read_pose;
-    if (map_start_pose.get_type() != rclcpp::ParameterType::PARAMETER_NOT_SET) {
-      read_pose = map_start_pose.get<std::vector<double>>();
+    if (map_start_pose_.get_type() != rclcpp::ParameterType::PARAMETER_NOT_SET) {
+      read_pose = this->get_parameter("map_start_pose").as_double_array();
       start_at_dock = false;
       if (read_pose.size() != 3) {
         RCLCPP_ERROR(get_logger(), "LocalizationSlamToolbox: Incorrect "
@@ -431,8 +445,8 @@ bool SlamToolbox::shouldStartWithPoseGraph(
         pose.y = read_pose[1];
         pose.theta = read_pose[2];
       }
-    } else if (map_start_at_dock.get_type() != rclcpp::ParameterType::PARAMETER_NOT_SET) {
-      start_at_dock = map_start_at_dock.get<bool>();
+    } else if (map_start_at_dock_.get_type() != rclcpp::ParameterType::PARAMETER_NOT_SET) {
+      start_at_dock = this->get_parameter("map_start_at_dock").as_bool();
     } else {
       RCLCPP_ERROR(get_logger(), "LocalizationSlamToolbox: Map starting "
           "pose not specified. Set either map_start_pose or map_start_at_dock.");
