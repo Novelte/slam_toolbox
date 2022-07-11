@@ -14,8 +14,7 @@ def generate_launch_description():
 
     declare_slam_params_file_cmd = DeclareLaunchArgument(
         'slam_params_file',
-        default_value=os.path.join(get_package_share_directory("slam_toolbox"),
-                                   'config', 'mapper_online_sync_lifecycle.yaml'),
+        default_value= '/var/novelte/config/nav_config.yaml',
         description='Full path to the ROS2 parameters file to use for the slam_toolbox node')
 
     start_sync_slam_toolbox_node = LifecycleNode(
