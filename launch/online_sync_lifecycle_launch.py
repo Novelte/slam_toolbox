@@ -11,11 +11,17 @@ import launch.events
 
 def generate_launch_description():
     slam_params_file = LaunchConfiguration('slam_params_file')
+    logger = LaunchConfiguration("log_level")
 
     declare_slam_params_file_cmd = DeclareLaunchArgument(
         'slam_params_file',
         default_value= '/var/novelte/config/nav_config.yaml',
         description='Full path to the ROS2 parameters file to use for the slam_toolbox node')
+
+    declare_log_level = DeclareLaunchArgument(
+        'log_level',
+        default_value='info',
+        description='Logging level')
 
     start_sync_slam_toolbox_node = LifecycleNode(
         parameters=[
@@ -26,7 +32,8 @@ def generate_launch_description():
         executable='sync_slam_toolbox_node',
         name='slam_toolbox',
         namespace='',
-        output='screen')
+        output='screen',
+        arguments=['--ros-args', '--log-level', logger])
 
     configure_transition = EmitEvent(
         event=launch_ros.events.lifecycle.ChangeState(
@@ -38,6 +45,7 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     ld.add_action(declare_slam_params_file_cmd)
+    ld.add_action(declare_log_level)
     ld.add_action(start_sync_slam_toolbox_node)
     ld.add_action(configure_transition)
 
