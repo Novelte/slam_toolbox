@@ -123,12 +123,12 @@ target_include_directories(SlamToolboxPlugin PUBLIC
   ${OGRE_INCLUDE_DIRS}
 )
 target_link_libraries(SlamToolboxPlugin ${QT_LIBRARIES} rviz_common::rviz_common)
-if (ROS_DISTRO EQUAL "humble")
+if ($ENV{ROS_DISTRO} STREQUAL "humble")
   rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
   target_link_libraries(SlamToolboxPlugin "${cpp_typesupport_target}")
 else()
   rosidl_target_interfaces(SlamToolboxPlugin ${PROJECT_NAME} "rosidl_typesupport_cpp")
-
+endif()
 
 target_compile_definitions(SlamToolboxPlugin PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 target_compile_definitions(SlamToolboxPlugin PRIVATE "RVIZ_DEFAULT_PLUGINS_BUILDING_LIBRARY")
@@ -143,11 +143,12 @@ target_link_libraries(ceres_solver_plugin ${CERES_LIBRARIES}
                                           kartoSlamToolbox
 )
 
-if (ROS_DISTRO EQUAL "humble")
+if ($ENV{ROS_DISTRO} STREQUAL "humble")
   rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
   target_link_libraries(ceres_solver_plugin "${cpp_typesupport_target}")
 else()
   rosidl_target_interfaces(ceres_solver_plugin ${PROJECT_NAME} "rosidl_typesupport_cpp")
+endif()
 pluginlib_export_plugin_description_file(slam_toolbox solver_plugins.xml)
 
 #### Tool lib for mapping
@@ -156,11 +157,13 @@ ament_target_dependencies(toolbox_common
   ${dependencies}
 )
 target_link_libraries(toolbox_common kartoSlamToolbox ${Boost_LIBRARIES})
-if (ROS_DISTRO EQUAL "humble")
+
+if ($ENV{ROS_DISTRO} STREQUAL "humble")
   rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
   target_link_libraries(toolbox_common "${cpp_typesupport_target}")
 else()
   rosidl_target_interfaces(toolbox_common ${PROJECT_NAME} "rosidl_typesupport_cpp")
+endif()
 
 #### Mapping executibles
 add_library(async_slam_toolbox src/slam_toolbox_async.cpp)
