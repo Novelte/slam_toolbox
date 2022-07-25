@@ -10,9 +10,6 @@ cmake_policy(SET CMP0077 NEW)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/CMake/")
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/lib/karto_sdk/cmake)
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_compile_options(-g)
-
 find_package(ament_cmake REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(nav_msgs REQUIRED)
@@ -36,6 +33,10 @@ find_package(interactive_markers REQUIRED)
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Test Concurrent)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_compile_options(-g)
+endif()
 
 #karto_sdk lib
 set(BUILD_SHARED_LIBS ON)
