@@ -348,6 +348,7 @@ void SlamToolbox::publishTransformLoop(
 
   rclcpp::Rate r(1.0 / transform_publish_period);
   while (rclcpp::ok()) {
+    if(active_)
     {
       boost::mutex::scoped_lock lock(map_to_odom_mutex_);
       rclcpp::Time scan_timestamp = scan_header.stamp;
@@ -386,9 +387,12 @@ void SlamToolbox::publishVisualizations()
   rclcpp::Rate r(1.0 / map_update_interval);
 
   while (rclcpp::ok()) {
+    if(active_)
+    {
     updateMap();
     if (!isPaused(VISUALIZING_GRAPH)) {
       closure_assistant_->publishGraph();
+    }
     }
     r.sleep();
   }
