@@ -46,7 +46,7 @@ public:
   // convert TF pose to karto pose
   karto::Pose2 toKartoPose(const tf2::Transform & pose) const;
 
-  void configure(const rclcpp::Node::SharedPtr & node);
+  void configure(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node);
   void Reset();
 
   // // processors

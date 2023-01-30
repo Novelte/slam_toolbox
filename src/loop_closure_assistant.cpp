@@ -26,7 +26,7 @@ namespace loop_closure_assistant
 
 /*****************************************************************************/
 LoopClosureAssistant::LoopClosureAssistant(
-  rclcpp::Node::SharedPtr node,
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node,
   karto::Mapper * mapper,
   laser_utils::ScanHolder * scan_holder,
   PausedState & state, ProcessType & processor_type)
@@ -71,6 +71,17 @@ LoopClosureAssistant::LoopClosureAssistant(
   map_frame_ = node->get_parameter("map_frame").as_string();
 }
 
+void LoopClosureAssistant::activate()
+{
+  marker_publisher_->on_activate();
+  scan_publisher_->on_activate();
+}
+
+void LoopClosureAssistant::deactivate()
+{
+  marker_publisher_->on_deactivate();
+  scan_publisher_->on_deactivate();
+}
 /*****************************************************************************/
 void LoopClosureAssistant::processInteractiveFeedback(const
   visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr feedback)
