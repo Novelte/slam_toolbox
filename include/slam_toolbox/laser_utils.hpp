@@ -76,7 +76,7 @@ class LaserAssistant
 {
 public:
   LaserAssistant(
-    rclcpp_lifecycle::LifecycleNode::SharedPtr node, tf2_ros::Buffer * tf,
+    rclcpp::Node::SharedPtr node, tf2_ros::Buffer * tf,
     const std::string & base_frame);
   ~LaserAssistant();
   LaserMetadata toLaserMetadata(sensor_msgs::msg::LaserScan scan);
@@ -85,7 +85,7 @@ private:
   karto::LaserRangeFinder * makeLaser(const double & mountingYaw);
   bool isInverted(double & mountingYaw);
 
-  rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
+  rclcpp::Node::SharedPtr node_;
   tf2_ros::Buffer * tf_;
   sensor_msgs::msg::LaserScan scan_;
   std::string frame_, base_frame_;

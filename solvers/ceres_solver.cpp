@@ -22,7 +22,7 @@ CeresSolver::CeresSolver()
 }
 
 /*****************************************************************************/
-void CeresSolver::Configure(rclcpp_lifecycle::LifecycleNode::SharedPtr node)
+void CeresSolver::Configure(rclcpp::Node::SharedPtr node)
 /*****************************************************************************/
 {
   node_ = node;

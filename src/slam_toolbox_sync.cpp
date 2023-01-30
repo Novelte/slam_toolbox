@@ -37,30 +37,12 @@ SynchronousSlamToolbox::SynchronousSlamToolbox(rclcpp::NodeOptions options)
 }
 
 /*****************************************************************************/
-rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-SynchronousSlamToolbox::on_deactivate(const rclcpp_lifecycle::State & )
-/*****************************************************************************/
-{
-  RCLCPP_INFO(get_logger(), "Deactivating");
-  deactivateAndReset();
-
-  RCLCPP_INFO(get_logger(), "SynchronousSlamToolbox: "
-    "Clearing all queued scans to add to map.");
-  while (!q_.empty()) {
-    q_.pop();
-  }
-
-  RCLCPP_INFO(get_logger(), "Deactivated");
-  return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
-}
-
-/*****************************************************************************/
 void SynchronousSlamToolbox::run()
 /*****************************************************************************/
 {
   rclcpp::Rate r(100);
   while (rclcpp::ok()) {
-    if (!q_.empty() && !isPaused(PROCESSING) && active_) {
+    if (!q_.empty() && !isPaused(PROCESSING)) {
       PosedScan scan_w_pose = q_.front();
       q_.pop();
 
@@ -83,10 +65,6 @@ void SynchronousSlamToolbox::laserCallback(
   sensor_msgs::msg::LaserScan::ConstSharedPtr scan)
 /*****************************************************************************/
 {
-  if(!active_)
-  {
-    return;
-  }
   // store scan header
   scan_header = scan->header;
   // no odom info
