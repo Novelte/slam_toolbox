@@ -28,7 +28,7 @@
 #include <vector>
 #include <fstream>
 
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
+#include "rclcpp/rclcpp.hpp"
 #include "interactive_markers/interactive_marker_server.hpp"
 #include "interactive_markers/menu_handler.hpp"
 #include "tf2_ros/transform_broadcaster.h"
@@ -47,7 +47,7 @@
 using namespace toolbox_types;  // NOLINT
 using namespace karto;  // NOLINT
 
-class MergeMapsKinematic : public rclcpp_lifecycle::LifecycleNode
+class MergeMapsKinematic : public rclcpp::Node
 {
   typedef std::vector<karto::LocalizedRangeScanVector>::iterator LocalizedRangeScansVecIt;
   typedef karto::LocalizedRangeScanVector::iterator LocalizedRangeScansIt;
@@ -57,9 +57,7 @@ public:
   ~MergeMapsKinematic();
   // setup
   void configure();
-  void activate();
-  void deactivate();
-  
+
 private:
   // callback
   bool mergeMapCallback(
@@ -84,8 +82,8 @@ private:
     const tf2::Transform & submap_correction);
 
   // ROS-y-ness
-  std::vector<std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::MapMetaData>>> sstmS_;
-  std::vector<std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::OccupancyGrid>>> sstS_;
+  std::vector<std::shared_ptr<rclcpp::Publisher<nav_msgs::msg::MapMetaData>>> sstmS_;
+  std::vector<std::shared_ptr<rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>>> sstS_;
   std::shared_ptr<rclcpp::Service<slam_toolbox::srv::MergeMaps>> ssMap_;
   std::shared_ptr<rclcpp::Service<slam_toolbox::srv::AddSubmap>> ssSubmap_;
 
